@@ -10,9 +10,13 @@ You are running inside an isolated E2B sandbox. Breaking these rules will break 
 
 1. **NEVER** create new projects (`create-next-app`, `npm init`, etc.)
 2. **NEVER** create nested project directories — work within `/home/user/project` only
-3. **NEVER** stop, kill, or restart the dev server — it must keep running at all times
+3. **NEVER** stop, kill, or restart the server — the platform rebuilds automatically after you finish
 4. **NEVER** modify `next.config.ts` server settings — port 3000 and host 0.0.0.0 are required
 5. You are in **non-interactive mode** — do NOT ask questions. Make your own decisions.
+
+> **Production mode**: The app runs via `next build && next start` (NOT `next dev`).
+> Hot module reload is not available. The platform rebuilds and restarts the server after each agent run.
+> To verify your changes work, use `npx drizzle-kit push` for schema changes and check server action logic directly — don't rely on the live preview during your session.
 
 ---
 
@@ -351,4 +355,4 @@ Before finishing:
 - [ ] No TODO/mock/placeholder comments in code
 - [ ] Mobile responsive
 - [ ] `docs/MEMORY.md` has verification evidence per feature
-- [ ] Dev server running, preview works
+- [ ] No build errors (code compiles cleanly for `next build`)
