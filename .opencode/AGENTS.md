@@ -16,6 +16,55 @@ You are running inside an isolated E2B sandbox. Breaking these rules will break 
 
 ---
 
+## FUNCTIONAL COMPLETENESS (NON-NEGOTIABLE)
+
+You are building a REAL product, not a prototype. Every feature must work end-to-end.
+
+**NEVER:**
+- Hardcode data arrays — query the database
+- Build forms that don't save to the database
+- Use placeholder content (Lorem Ipsum, example@email.com, fake testimonials)
+- Leave TODO/mock/placeholder comments in code
+- Create "demo mode" or "coming soon" sections
+- Build UI without connecting it to server actions
+
+**ALWAYS:**
+- Implement full CRUD: schema → server action → UI → verify
+- Every form must persist data (submit → refresh → data still there)
+- Every list must query real data from the database
+- Test each feature before moving to the next
+
+### Examples: Good vs Bad
+
+❌ **BAD** — Looks functional but is fake:
+```tsx
+const posts = [
+  { id: 1, title: "Welcome Post", content: "This is a sample post" },
+  { id: 2, title: "Getting Started", content: "Here's how to begin" },
+];
+return posts.map(post => <Card key={post.id}>...</Card>);
+```
+
+✅ **GOOD** — Actually functional:
+```tsx
+const session = await auth.api.getSession({ headers: await headers() });
+if (!session) redirect("/sign-in");
+const posts = await db.select().from(postsTable).where(eq(postsTable.userId, session.user.id));
+return posts.map(post => <Card key={post.id}>...</Card>);
+```
+
+❌ **BAD** — Form that renders but doesn't save:
+```tsx
+<form onSubmit={(e) => { e.preventDefault(); toast.success("Saved!"); }}>
+```
+
+✅ **GOOD** — Form connected to server action:
+```tsx
+<form action={createPost}>
+```
+
+---
+
 ## CONTEXT & MEMORY
 
 You are stateless between runs. Your memory lives in files. **Always read these first:**
@@ -277,24 +326,29 @@ The design and UX MUST feel world-class:
 
 ## BUILD PROCESS
 
-1. Read `docs/PROJECT.md` for specifications
-2. Plan your approach: pages needed, database schema, component structure
-3. Define your Drizzle schema in `src/db/schema.ts`, then push: `npx drizzle-kit push`
-4. Build pages one at a time, starting with the most important
-5. Style with Tailwind + shadcn/ui — make it look polished
-6. Test by visiting pages in the browser (port 3000)
-7. Update `docs/MEMORY.md` when done
+1. Read `docs/PROJECT.md` — identify all FEATURES (not pages)
+2. Plan: list features, each feature = database table(s) + server actions + UI
+3. Define COMPLETE Drizzle schema for ALL features upfront in `src/db/schema.ts`, then push: `npx drizzle-kit push`
+4. Build features one at a time, in dependency order. For each feature:
+   a. Server actions for CRUD (in `src/app/.../actions.ts`)
+   b. UI components that call those actions
+   c. **Verify**: create data → refresh page → data persists
+   d. **Self-check**: review your code — are there any hardcoded arrays, TODOs, or fake data? Fix before proceeding.
+5. Style with Tailwind + shadcn/ui — polished, not default
+6. **Final verification pass**: go through every feature in PROJECT.md and confirm it works
+7. Update `docs/MEMORY.md` with verification evidence per feature
 
 ---
 
 ## QUALITY CHECK
 
 Before finishing:
-- [ ] All pages from the spec are built and functional
-- [ ] Database schema pushed (`npx drizzle-kit push`)
-- [ ] Auth checks on protected routes (server-side `auth.api.getSession()`)
-- [ ] User feedback via toast notifications on actions
-- [ ] Design feels polished and responsive
+- [ ] Every feature from PROJECT.md is implemented end-to-end
+- [ ] Every form saves to database (submit → refresh → data persists)
+- [ ] No hardcoded data arrays — all content from database queries
+- [ ] Auth protects routes (server-side session checks)
+- [ ] User feedback via toast on all actions
+- [ ] No TODO/mock/placeholder comments in code
 - [ ] Mobile responsive
-- [ ] `docs/MEMORY.md` updated with current state
-- [ ] Dev server still running, preview works
+- [ ] `docs/MEMORY.md` has verification evidence per feature
+- [ ] Dev server running, preview works
