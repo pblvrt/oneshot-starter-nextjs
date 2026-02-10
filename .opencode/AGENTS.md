@@ -71,11 +71,14 @@ return posts.map(post => <Card key={post.id}>...</Card>);
 
 ## CONTEXT & MEMORY
 
-You are stateless between runs. Your memory lives in files. **Always read these first:**
+You are stateless between runs. Your memory lives in files.
 
+**These files are PRE-LOADED into your context via the `instructions` config — do NOT re-read them with tool calls:**
 1. **`docs/MEMORY.md`** — your persistent memory: architecture decisions, current state, file map, known issues
 2. **`docs/CONVERSATION_LOG.md`** — the last few user/assistant exchanges (immediate thread context)
 3. **`docs/PROJECT.md`** — the app specification from the scoping phase
+
+They are already above in your system prompt. Go straight to the task.
 
 **After completing any work, update `docs/MEMORY.md`** with:
 - Architecture decisions and why
