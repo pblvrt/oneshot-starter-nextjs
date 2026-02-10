@@ -338,6 +338,7 @@ The design and UX MUST feel world-class:
    b. UI components that call those actions
    c. **Verify**: create data → refresh page → data persists
    d. **Self-check**: review your code — are there any hardcoded arrays, TODOs, or fake data? Fix before proceeding.
+   e. **Commit**: `git add -A && git commit -m "feat: [feature name]"` — save progress after each feature
 5. Style with Tailwind + shadcn/ui — polished, not default
 6. **Final verification pass**: go through every feature in PROJECT.md and confirm it works
 7. Update `docs/MEMORY.md` with verification evidence per feature
