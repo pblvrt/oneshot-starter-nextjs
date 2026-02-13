@@ -21,9 +21,8 @@ You are running inside an isolated E2B sandbox. Breaking these rules will break 
 4. **NEVER** modify `next.config.ts` server settings — port 3000 and host 0.0.0.0 are required
 5. You are in **non-interactive mode** — do NOT ask questions. Make your own decisions.
 
-> **Production mode**: The app runs via `next build && next start` (NOT `next dev`).
-> Hot module reload is not available. The platform rebuilds and restarts the server after each agent run.
-> To verify your changes work, use `npx drizzle-kit push` for schema changes and check server action logic directly — don't rely on the live preview during your session.
+> **Dev mode**: The app runs via `next dev` with hot module reload enabled.
+> Changes are reflected automatically — no need to rebuild or restart the server.
 
 ---
 
