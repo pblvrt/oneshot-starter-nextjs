@@ -323,17 +323,125 @@ export async function createPost(formData: FormData) {
 
 ---
 
-## DESIGN STANDARDS
+## DESIGN STANDARDS (NON-NEGOTIABLE)
 
-The design and UX MUST feel world-class:
+Design quality is as important as functional completeness. A working app that looks like default shadcn/ui is a failure. **Design while you build — not as a polish step at the end.**
 
-- **Typography**: Use Geist font (already configured), clear hierarchy with dramatic scale
-- **Color**: Use the shadcn/ui CSS variable system. Customize in `globals.css`
-- **Motion**: Staggered entrances, scroll-triggered reveals, CSS animations preferred
-- **Layout**: Break the grid — asymmetry, overlapping elements when appropriate
-- **Components**: Customize shadcn/ui heavily — don't ship defaults
-- **Feedback**: Use `toast()` from sonner for user feedback on actions
-- **Dark mode**: Support both light and dark via the `.dark` class on html/body
+### The 5 Design Rules
+
+1. **Question every element.** Ask "does this need to exist?" If the answer is vague, leave it out.
+2. **One hero per section.** Decide the single most important thing in each section. Don't write code until you've decided.
+3. **Never score everything 70/100.** All elements having equal weight = AI-generated look. Make one thing 120, the rest 60.
+4. **Propose deletion over addition.** When in doubt, remove. Whitespace is a feature.
+5. **Critique before you build.** Identify 3 problems with the current state before writing new code. "Looks good" is never the answer.
+
+### Avoiding AI-Generated Look
+
+**These are the tells that make UI look AI-generated — avoid all of them:**
+- All elements have the same visual weight (uniform spacing, uniform sizing, uniform color intensity)
+- No clear visual hierarchy — the eye doesn't know where to go
+- Meaningless decorative gradients and animations
+- Default shadcn/ui with no customization
+- Safe, non-committal color choices
+
+### Color & Tokens
+
+**Use project tokens from `globals.css` — NEVER use raw Tailwind colors directly:**
+
+```tsx
+// WRONG: Raw Tailwind colors
+<p className="text-slate-400">...</p>
+<div className="bg-gray-900">...</div>
+
+// CORRECT: Project semantic tokens
+<p className="text-muted-foreground">...</p>
+<div className="bg-background">...</div>
+```
+
+Available semantic tokens (defined in `globals.css`): `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`.
+
+Customize the palette in `globals.css` to match the app's personality. The default neutral theme is a starting point, not a final answer.
+
+### Typography
+
+- Use Geist font (already configured via `--font-geist-sans` and `--font-geist-mono`)
+- Create clear hierarchy: hero headings should be dramatically larger than body text
+- Don't make every heading the same size — scale: hero (`text-4xl`+) > section (`text-2xl`) > card title (`text-lg`) > body (`text-base`) > caption (`text-sm`)
+
+### Layout
+
+- **Mobile-first**: Base styles for mobile, scale up with `sm:`, `md:`, `lg:`
+- Use shadcn/ui layout components (Card, Tabs, Sheet, Dialog) as building blocks
+- Compose complex layouts from simple primitives — don't build monolith pages
+- Generous whitespace. Cramped layouts look amateur.
+
+### Motion & Interactions (CSS-only)
+
+Add transitions to make the UI feel alive. Use CSS — do NOT install framer-motion.
+
+**Timing rules:**
+| Duration  | Use Case |
+|-----------|----------|
+| 150ms     | Hover/focus feedback |
+| 200-300ms | Toggles, dropdowns, small reveals |
+| 300-500ms | Modals, page section transitions |
+
+**Easing:** Use `ease-out` for enters, `ease-in` for exits.
+
+**Patterns to use:**
+```css
+/* Card hover lift */
+.card { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+/* Fade-in on load */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+/* Staggered list entrance */
+.stagger-item { animation: fadeIn 0.3s ease-out backwards; }
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 50ms; }
+.stagger-item:nth-child(3) { animation-delay: 100ms; }
+```
+
+**Performance rules:**
+- Only animate `transform` and `opacity` — never `width`, `height`, `top`, `left`
+- Never use `transition: all` — list specific properties
+- Add `cursor-pointer` to all clickable elements
+- Respect `prefers-reduced-motion` for accessibility
+
+### Feedback
+
+- Use `toast()` from sonner for user feedback on all actions (success, error)
+- Show loading states during async operations (use shadcn Skeleton for content loading)
+- Disabled buttons should show `cursor-not-allowed` and reduced opacity
+
+### Accessibility
+
+- All text: minimum **4.5:1** contrast ratio against background
+- Large text (18px+ bold): minimum **3:1**
+- Interactive elements: minimum **3:1**
+- Visible focus indicators on all interactive elements
+- Semantic HTML (`<button>`, `<nav>`, `<main>`, `<section>`)
+
+### Visual Hierarchy Checklist (use before completing each page)
+
+- [ ] Can you identify the "hero" of each section in under 3 seconds?
+- [ ] Is there an element you could remove without losing meaning?
+- [ ] Do elements have different visual weight, or is everything uniform?
+- [ ] On mobile, is it immediately clear what action to take?
+- [ ] Are you using project tokens (not raw Tailwind colors)?
+
+### Deep Reference
+
+For detailed design guidance, read these files:
+- `.agents/skills/ui-design-system/SKILL.md` — Component architecture, three-tier token system, responsive patterns
+- `.agents/skills/ui-ux-pro-max/SKILL.md` — Visual hierarchy rules, contrast requirements, component conventions
+- `.agents/skills/interaction-design/SKILL.md` — Animation patterns, timing, gesture interactions
 
 ---
 
@@ -341,14 +449,15 @@ The design and UX MUST feel world-class:
 
 1. Read `docs/PROJECT.md` — identify all FEATURES (not pages)
 2. Plan: list features, each feature = database table(s) + server actions + UI
-3. Define COMPLETE Drizzle schema for ALL features upfront in `src/db/schema.ts`, then push: `npx drizzle-kit push`
-4. Build features one at a time, in dependency order. For each feature:
+3. **Design intent**: Before writing code, decide: what's the visual personality of this app? What color palette? What's the hero element of each main page? Write 2-3 sentences in `docs/MEMORY.md` under a "Design Direction" heading.
+4. Define COMPLETE Drizzle schema for ALL features upfront in `src/db/schema.ts`, then push: `npx drizzle-kit push`
+5. Build features one at a time, in dependency order. **Design while you build — not after.** For each feature:
    a. Server actions for CRUD (in `src/app/.../actions.ts`)
-   b. UI components that call those actions
+   b. UI components that call those actions — **styled and polished from the start**
    c. **Verify**: create data → refresh page → data persists
-   d. **Self-check**: review your code — are there any hardcoded arrays, TODOs, or fake data? Fix before proceeding.
-   e. **Commit**: `git add -A && git commit -m "feat: [feature name]"` — save progress after each feature
-5. Style with Tailwind + shadcn/ui — polished, not default
+   d. **Design check**: Run through the Visual Hierarchy Checklist above. Fix issues before proceeding.
+   e. **Self-check**: review your code — are there any hardcoded arrays, TODOs, or fake data? Fix before proceeding.
+   f. **Commit**: `git add -A && git commit -m "feat: [feature name]"` — save progress after each feature
 6. **Final verification pass**: go through every feature in PROJECT.md and confirm it works
 7. Update `docs/MEMORY.md` with verification evidence per feature
 
@@ -357,12 +466,22 @@ The design and UX MUST feel world-class:
 ## QUALITY CHECK
 
 Before finishing:
+
+### Functional
 - [ ] Every feature from PROJECT.md is implemented end-to-end
 - [ ] Every form saves to database (submit → refresh → data persists)
 - [ ] No hardcoded data arrays — all content from database queries
 - [ ] Auth protects routes (server-side session checks)
 - [ ] User feedback via toast on all actions
 - [ ] No TODO/mock/placeholder comments in code
-- [ ] Mobile responsive
-- [ ] `docs/MEMORY.md` has verification evidence per feature
 - [ ] No build errors (code compiles cleanly for `next build`)
+
+### Design
+- [ ] Each page has a clear visual hero — not everything the same weight
+- [ ] Using project tokens from `globals.css` — no raw `text-slate-*` or `bg-gray-*`
+- [ ] Interactive elements have hover/focus transitions (150-300ms, ease-out)
+- [ ] Loading states use Skeleton components, not blank screens
+- [ ] Mobile responsive (test at 320px, 768px, 1024px)
+- [ ] Text meets WCAG contrast minimums (4.5:1 normal, 3:1 large)
+- [ ] `cursor-pointer` on all clickable elements
+- [ ] `docs/MEMORY.md` has design direction and verification evidence
